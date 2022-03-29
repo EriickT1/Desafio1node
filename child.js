@@ -15,24 +15,31 @@
 
 const https = require ('https');
 const fs = require ('fs');
-const child = require('child_process');
 
-const args = process.argv.slice(4);
-let nombreArchivo = args[0];
+
+const args = process.argv.slice(2);
+let nombre_archivo = args[0];
 let extension = args[1];
 let moneda = args[2];
-let cantidad = args[3];
-
+let cantidad = Number(args[3]);
+let fecha = new Date();
 https.get('https://mindicador.cl/api',(resp)=>{
     let data = '';
     resp.on('data', (respDatos)=>{
         data +=respDatos;
-    })
+    });
     resp.on('end', ()=>{
         // console.log(JSON.parse(data));
         let datApi  = JSON.parse(data);
-        console.log(datApi[`${moneda}`].valor);
+        console.log(datApi[moneda].valor);
+        let calculo = Number((cantidad / datApi[moneda].valor));
         
+        fs.writeFile(`${nombre_archivo}.${extension}`,`A la fecha: ${fecha} 
+        Fue realizada cotización con los siguientes datos: 
+        Cantidad de pesos a convertir: ${cantidad}
+        Convertido a "${moneda}" da un total de:
+        ${calculo}`,'utf8', () => console.log('Se creó el archivo '+nombre_archivo)
+        );
         
 
     });
@@ -41,7 +48,8 @@ https.get('https://mindicador.cl/api',(resp)=>{
 });    
 
 
-// fs.writeFile('NombreArchivo.txt','Contenido ','utf8',()=>{
-//     console.log('Archivo creado.');
-// });
-// let unidadejemplo = dataapi.find((elemento) => elemento.unidad_medida == unidadmedida);
+// A la fecha: {Thu Sep 03 2020 18:41:00 GMT-0400 (GMT-04:00)}
+// Fue realizada cotización con los siguientes datos:
+// Cantidad de pesos a convertir: {250000 pesos}
+// Convertido a "{dólar}" da un total de:
+// ${324,06}
